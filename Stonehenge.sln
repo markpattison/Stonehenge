@@ -36,6 +36,14 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "effects", "effects", "{CCBA
 		content\effects\effects.fx = content\effects\effects.fx
 	EndProjectSection
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "textures", "textures", "{453FC058-F9ED-40EC-B5A4-B0AE5E01871E}"
+	ProjectSection(SolutionItems) = preProject
+		content\textures\grass.dds = content\textures\grass.dds
+		content\textures\rock.dds = content\textures\rock.dds
+		content\textures\sand.dds = content\textures\sand.dds
+		content\textures\snow.dds = content\textures\snow.dds
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -52,6 +60,7 @@ Global
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{CCBA0366-4BFF-4858-9F45-03AA90C4ED48} = {67D013D7-6649-4F1E-B412-3C54025ACC64}
+		{453FC058-F9ED-40EC-B5A4-B0AE5E01871E} = {67D013D7-6649-4F1E-B412-3C54025ACC64}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {EF1DE4E2-2042-4943-960A-5B93BB779FDA}
