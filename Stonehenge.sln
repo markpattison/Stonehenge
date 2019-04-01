@@ -34,6 +34,9 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "effects", "effects", "{CCBA0366-4BFF-4858-9F45-03AA90C4ED48}"
 	ProjectSection(SolutionItems) = preProject
 		content\effects\effects.fx = content\effects\effects.fx
+		content\effects\groundFromAtmosphere.fx = content\effects\groundFromAtmosphere.fx
+		content\effects\hdr.fx = content\effects\hdr.fx
+		content\effects\skyFromAtmosphere.fx = content\effects\skyFromAtmosphere.fx
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "textures", "textures", "{453FC058-F9ED-40EC-B5A4-B0AE5E01871E}"
