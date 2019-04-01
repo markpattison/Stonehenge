@@ -1,9 +1,7 @@
-﻿module FSharpMonogame.Input
+﻿module Stonehenge.Input
 
 open Microsoft.Xna.Framework
 open Microsoft.Xna.Framework.Input
-
-type ResetMouseEachFrame = | Reset | DoNotReset
 
 type Input(keyboardState: KeyboardState,
            oldKeyboardState : KeyboardState,
@@ -12,8 +10,7 @@ type Input(keyboardState: KeyboardState,
            gameWindow : GameWindow,
            originalMouseState: MouseState,
            oldMouseX,
-           oldMouseY,
-           resetMouseEachFrame) =
+           oldMouseY) =
 
     let justPressed key =
         keyboardState.IsKeyDown(key) && oldKeyboardState.IsKeyUp(key)
@@ -22,21 +19,22 @@ type Input(keyboardState: KeyboardState,
     let mouseDY = mouseState.Y - originalMouseState.Y
     let mouseX = oldMouseX + mouseDX
     let mouseY = oldMouseY + mouseDY
-
-    do if resetMouseEachFrame = Reset && not (obj.ReferenceEquals(gameWindow, null)) then
-        Mouse.SetPosition(gameWindow.ClientBounds.Width / 2, gameWindow.ClientBounds.Height / 2)
+    do if not (obj.ReferenceEquals(gameWindow, null)) then Mouse.SetPosition(gameWindow.ClientBounds.Width / 2, gameWindow.ClientBounds.Height / 2)
 
     member _this.Quit = justPressed(Keys.Escape)
     member _this.MouseX = mouseX
     member _this.MouseY = mouseY
     member _this.MouseDX = mouseDX
     member _this.MouseDY = mouseDY
-    member _this.IsPressed(key) = keyboardState.IsKeyDown(key)
-    member _this.JustPressed(key) = justPressed(key)
-
+    member _this.Up = keyboardState.IsKeyDown(Keys.Up)
+    member _this.Down = keyboardState.IsKeyDown(Keys.Down)
+    member _this.Left = keyboardState.IsKeyDown(Keys.Left)
+    member _this.Right = keyboardState.IsKeyDown(Keys.Right)
     member _this.Forward = (mouseState.LeftButton = ButtonState.Pressed)
     member _this.Backward = (mouseState.RightButton = ButtonState.Pressed)
+    member _this.PageUp = keyboardState.IsKeyDown(Keys.PageUp)
+    member _this.PageDown = keyboardState.IsKeyDown(Keys.PageDown)
     member _this.Fire = (mouseState.LeftButton = ButtonState.Pressed) && (oldMouseState.LeftButton = ButtonState.Released)
 
     member _this.Updated(keyboard: KeyboardState, mouse: MouseState, window : GameWindow) =
-        Input(keyboard, keyboardState, mouse, mouseState, window, originalMouseState, mouseX, mouseY, resetMouseEachFrame)
+        Input(keyboard, keyboardState, mouse, mouseState, window, originalMouseState, mouseX, mouseY)
