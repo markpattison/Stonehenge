@@ -53,13 +53,5 @@ let loadEnvironment =
                 ESun = 20.0f;
                 G = -0.95f;
                 Wavelengths = Vector3(0.650f, 0.570f, 0.440f);
-            };
-        Water =
-            {
-                WindDirection = Vector2(0.0f, 1.0f);
-                WindForce = 0.0015f;
-                WaveLength = 0.1f;
-                WaveHeight = 0.8f;
-                Opacity = 4.0f;
-            };
+            }
     }

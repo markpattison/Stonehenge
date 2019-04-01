@@ -11,14 +11,7 @@ float xAmbient;
 float3 xCameraPosition;
 float2 xMinMaxHeight;
 
-float xWaterOpacity;
-float xTime;
-float xWindForce;
-float2 xWindDirection;
-float xWaveLength;
-float xWaveHeight;
 float xPerlinSize3D;
-bool xAlphaAfterWaterDepthWeighting;
 
 float xG;
 float xGSquared;
@@ -384,11 +377,6 @@ PixelToFrame GroundFromAtmospherePS(GroundFromAtmosphere_VertexToPixel PSInput)
     output.Color.rgb += specular;
 	output.Color.rgb *= PSInput.Attenuation;
 	output.Color.rgb += PSInput.ScatteringColour;
-	
-	// water depth if required
-    float distanceAfterWater = abs (length(PSInput.WorldPosition.xyz - xCameraPosition) * PSInput.WorldPosition.y / (PSInput.WorldPosition.y - xCameraPosition.y));
-    float distanceAfterWaterMax10 = clamp(distanceAfterWater / 10.0, 0.0, 1.0);
-    output.Color.a = xAlphaAfterWaterDepthWeighting ? distanceAfterWaterMax10 : 1.0f;
 
 	return output;
 }
@@ -399,114 +387,6 @@ technique GroundFromAtmosphere
 	{
 		VertexShader = compile vs_4_0 GroundFromAtmosphereVS();
 		PixelShader = compile ps_4_0 GroundFromAtmospherePS();
-	}
-}
-
-struct WVertexToPixel
-{
-	float4 Position                    : SV_POSITION;
-	float4 ReflectionMapSamplingPos    : TEXCOORD1;
-	float3 BumpMapSamplingPos          : TEXCOORD2;
-	float4 RefractionMapSamplingPos    : TEXCOORD3;
-	float3 WorldPosition               : TEXCOORD4;
-	float3 ScatteringColour            : COLOR0;
-	float3 Attenuation                 : COLOR1;
-};
-
-struct WPixelToFrame
-{
-	float4 Color : COLOR0;
-};
-
-WVertexToPixel WaterVS(float4 inPos : SV_POSITION, float2 inTex : TEXCOORD)
-{
-	WVertexToPixel Output = (WVertexToPixel)0;
-
-	float4x4 preViewProjection = mul(xView, xProjection);
-	float4x4 preWorldViewProjection = mul(xWorld, preViewProjection);
-	float4x4 preReflectionViewProjection = mul(xReflectionView, xProjection);
-	float4x4 preWorldReflectionViewProjection = mul(xWorld, preReflectionViewProjection);
-
-	Output.Position = mul(inPos, preWorldViewProjection);
-	float2 moveVector = xTime * xWindForce * xWindDirection;
-	Output.BumpMapSamplingPos.xz = (inTex.xy + moveVector.xy) / xWaveLength;
-	Output.BumpMapSamplingPos.y = xTime / 100.0f;
-	Output.ReflectionMapSamplingPos = mul(inPos, preWorldReflectionViewProjection);
-	Output.RefractionMapSamplingPos = mul(inPos, preWorldViewProjection);
-	float4 worldPosition = mul(inPos, xWorld);
-	Output.WorldPosition = worldPosition.xyz;
-
-	// need to use more triangles before enabling this...
-	//ScatteringResult scattering = Scattering(worldPosition.xyz);
-
-	//Output.ScatteringColour = scattering.ScatteringColour;
-	//Output.Attenuation = scattering.Attenuation;
-
-	return Output;
-}
-
-WPixelToFrame WaterPS(WVertexToPixel PSIn)
-{
-	WPixelToFrame Output = (WPixelToFrame)0;
-
-    float4 gradientAndPerturbation = 0.03 * Perlin3DwithDerivatives(PSIn.BumpMapSamplingPos / 2.0)
-        + 0.015 * Perlin3DwithDerivatives(PSIn.BumpMapSamplingPos);
-
-    float3 normalVector = float3(0.0, 1.0, 0.0) + gradientAndPerturbation.xyz;
-    normalize(normalVector);
-    float2 perturbation = gradientAndPerturbation.a;
-
-	float2 projectedReflTexCoords;
-	projectedReflTexCoords.x = PSIn.ReflectionMapSamplingPos.x / PSIn.ReflectionMapSamplingPos.w / 2.0f + 0.5f;
-	projectedReflTexCoords.y = -PSIn.ReflectionMapSamplingPos.y / PSIn.ReflectionMapSamplingPos.w / 2.0f + 0.5f;
-    float4 reflectiveColorNoPerturb = tex2D(ReflectionSampler, projectedReflTexCoords);
-    float distanceMax10 = reflectiveColorNoPerturb.a;
-    float2 perturbatedReflTexCoords = projectedReflTexCoords + perturbation * distanceMax10 / 2.0f;
-    float4 reflectiveColorPerturb = tex2D(ReflectionSampler, perturbatedReflTexCoords);
-    float4 reflectiveColor = (reflectiveColorPerturb.a == 0.0f) ? reflectiveColorNoPerturb : reflectiveColorPerturb;
-
-	float2 projectedRefrTexCoords;
-	projectedRefrTexCoords.x = PSIn.RefractionMapSamplingPos.x / PSIn.RefractionMapSamplingPos.w / 2.0f + 0.5f;
-	projectedRefrTexCoords.y = -PSIn.RefractionMapSamplingPos.y / PSIn.RefractionMapSamplingPos.w / 2.0f + 0.5f;
-    float4 refractiveColorNoPerturb = tex2D(RefractionSampler, projectedRefrTexCoords);
-    float distanceUnderwaterMax10 = refractiveColorNoPerturb.a;
-    float2 perturbatedRefrTexCoords = projectedRefrTexCoords + perturbation * distanceUnderwaterMax10 / 2.0f;
-    float4 refractiveColorPerturb = tex2D(RefractionSampler, perturbatedRefrTexCoords);
-    float4 refractiveColor = (refractiveColorPerturb.a == 0.0f) ? refractiveColorNoPerturb : refractiveColorPerturb;
-	float4 dullColor = float4(0.0, 0.05, 0.1, 1.0);
-    
-    float dullWeighting = (refractiveColor.a == 0.0) ? 1.0 : distanceUnderwaterMax10;
-    refractiveColor = lerp(refractiveColor, dullColor, 1.0 - exp(-dullWeighting * xWaterOpacity));
-
-	float3 eyeVector = normalize(xCameraPosition - PSIn.WorldPosition);
-
-	// Schlick's approximation
-	float AirIOR = 1.0;
-	float WaterIOR = 1.33;
-	float R0 = (AirIOR - WaterIOR) / (AirIOR + WaterIOR);
-	R0 *= R0;
-
-	float fresnelTerm = R0 + (1.0 - R0) * pow(1.0 - dot(eyeVector, normalVector), 5.0);
-
-    float4 combinedColor = lerp(refractiveColor, reflectiveColor, fresnelTerm);
-    combinedColor.a = 1.0;
-    Output.Color = combinedColor;
-
-    //float foamWeight = 1.0 - clamp(distanceUnderwaterMax10 * 10.0, 0.0, 1.0);
-
-    //Output.Color = lerp (combinedColor, float4(1.0, 1.0, 1.0, 1.0), foamWeight);
-
-	//Output.Color.rgb += PSIn.ScatteringColour;
-
-	return Output;
-}
-
-technique Water
-{
-	pass Pass0
-	{
-		VertexShader = compile vs_4_0 WaterVS();
-		PixelShader = compile ps_4_0 WaterPS();
 	}
 }
 
@@ -559,11 +439,6 @@ PixelToFrame ColouredPS(ColouredVertexToPixel PSInput)
     Output.Color.rgb += specular;
     Output.Color.rgb *= PSInput.Attenuation;
     Output.Color.rgb += PSInput.ScatteringColour;
-
-	// water depth if required
-    float distanceAfterWater = abs(length(PSInput.WorldPosition.xyz - xCameraPosition) * PSInput.WorldPosition.y / (PSInput.WorldPosition.y - xCameraPosition.y));
-    float distanceAfterWaterMax10 = clamp(distanceAfterWater / 10.0, 0.0, 1.0);
-    Output.Color.a = xAlphaAfterWaterDepthWeighting ? distanceAfterWaterMax10 : 1.0f;
 
     return Output;
 }

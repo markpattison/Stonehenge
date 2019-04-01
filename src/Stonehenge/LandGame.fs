@@ -12,7 +12,6 @@ open Stonehenge.Input
 open Stonehenge.Terrain
 open Stonehenge.ContentLoader
 open Stonehenge.EnvironmentParameters
-open Stonehenge.Water
 open Stonehenge.Sphere
 open Stonehenge.Sky
 
@@ -22,7 +21,6 @@ type LandGame() as _this =
     let mutable spriteBatch = Unchecked.defaultof<SpriteBatch>
     let mutable effects = Unchecked.defaultof<Effects>
     let mutable environment = Unchecked.defaultof<EnvironmentParameters>
-    let mutable water = Unchecked.defaultof<Water>
     let mutable sky = Unchecked.defaultof<Sky>
     let mutable vertices = Unchecked.defaultof<VertexPositionNormalTexture[]>
     let mutable debugVertices = Unchecked.defaultof<VertexPositionTexture[]>
@@ -128,7 +126,6 @@ type LandGame() as _this =
         sphereVertices <- sphereVerts
         sphereIndices <- sphereInds
 
-        water <- new Water(effects.GroundFromAtmosphere, perlinTexture3D, environment, device)
         sky <- new Sky(effects.SkyFromAtmosphere, environment, device)
 
     override _this.Update(gameTime) =
@@ -155,13 +152,10 @@ type LandGame() as _this =
     override _this.Draw(gameTime) =
         let time = (single gameTime.TotalGameTime.TotalMilliseconds) / 100.0f
 
-        water.Prepare view camera _this.DrawApartFromSky (sky.DrawSkyDome world projection lightDirection camera)
-
         device.SetRenderTarget(hdrRenderTarget)
 
         do device.Clear(Color.Black)
         _this.DrawApartFromSky false view noClipPlane
-        water.DrawWater time world view projection lightDirection camera
         sky.DrawSkyDome world projection lightDirection camera view
         //_this.DrawDebug perlinTexture3D
 
@@ -199,13 +193,11 @@ type LandGame() as _this =
         effect.Parameters.["xSnowTexture"].SetValue(textures.Snow)
         effect.Parameters.["xClipPlane"].SetValue(clipPlane)
         effect.Parameters.["xAmbient"].SetValue(0.5f)
-        effect.Parameters.["xAlphaAfterWaterDepthWeighting"].SetValue(x)
         effect.Parameters.["xMinMaxHeight"].SetValue(minMaxTerrainHeight)
         effect.Parameters.["xPerlinSize3D"].SetValue(15.0f)
         effect.Parameters.["xRandomTexture3D"].SetValue(perlinTexture3D)
 
         environment.Atmosphere.ApplyToEffect effect
-        environment.Water.ApplyToGroundEffect effect
 
         device.BlendState <- BlendState.Opaque
 

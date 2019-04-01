@@ -97,7 +97,6 @@
     <Compile Include="EnvironmentParameters.fs" />
     <Compile Include="ContentLoader.fs" />
     <Compile Include="Sky.fs" />
-    <Compile Include="Water.fs" />
     <Compile Include="LandGame.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
