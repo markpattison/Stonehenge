@@ -14,7 +14,6 @@ open Fake.IO.Globbing.Operators
 let intermediateContentDir = "./intermediateContent/"
 let contentDir = "./src/Stonehenge/"
 let buildDir  = "./build/"
-let deployDir = "./deploy/"
 
 // Filesets
 
@@ -30,7 +29,7 @@ let contentFiles =
 
 Target.description "Cleaning directories"
 Target.create "Clean" (fun _ -> 
-    Fake.IO.Shell.cleanDirs [buildDir; deployDir]
+    Fake.IO.Shell.cleanDirs [ buildDir ]
 )
 
 Target.description "Building MonoGame content"
