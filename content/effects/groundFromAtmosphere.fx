@@ -2,7 +2,6 @@
 
 // constants
 float4x4 xView;
-float4x4 xReflectionView;
 float4x4 xProjection;
 float4x4 xWorld;
 float3 xLightDirection;
@@ -74,12 +73,6 @@ sampler SnowTextureSampler = sampler_state
     AddressV = mirror;
 };
 
-texture xReflectionMap;
-sampler ReflectionSampler = sampler_state { texture = <xReflectionMap>; magfilter = LINEAR; minfilter = LINEAR; mipfilter = LINEAR; AddressU = mirror; AddressV = mirror; };
-
-texture xRefractionMap;
-sampler RefractionSampler = sampler_state { texture = <xRefractionMap>; magfilter = LINEAR; minfilter = LINEAR; mipfilter = LINEAR; AddressU = mirror; AddressV = mirror; };
-
 texture xRandomTexture3D;
 sampler RandomTextureSampler3D = sampler_state { texture = <xRandomTexture3D>; AddressU = WRAP; AddressV = WRAP; AddressW = WRAP; };
 
@@ -97,7 +90,6 @@ struct GroundFromAtmosphere_VertexToPixel
 	float3 ScatteringColour : COLOR0;
 	float3 Attenuation : COLOR1;
 	float2 TextureCoords : TEXCOORD1;
-	float ClipDistance : TEXCOORD2;
 	float Depth : TEXCOORD4;
 	float3 WorldPosition: TEXCOORD5;
 };
@@ -299,7 +291,6 @@ GroundFromAtmosphere_VertexToPixel GroundFromAtmosphereVS(GroundFromAtmosphere_T
 	float3 normal = normalize(mul(float4(normalize(VSInput.Normal), 0.0), xWorld)).xyz;
     output.Normal = normal;
 
-	output.ClipDistance = dot(worldPosition, xClipPlane);
 	output.Depth = output.Position.z / output.Position.w;
 
 	ScatteringResult scattering = Scattering(worldPosition.xyz);
@@ -327,54 +318,16 @@ float3 BumpMapNoiseGradient(float3 worldPosition)
 
 PixelToFrame GroundFromAtmospherePS(GroundFromAtmosphere_VertexToPixel PSInput)
 {
-	clip(PSInput.ClipDistance);
     PixelToFrame output = (PixelToFrame) 0;
 
-    float4 weights;
-
-    float sandTo = 0.21;
-    float grassFrom = 0.26;
-    float grassTo = 0.56;
-    float rockFrom = 0.61;
-    float rockTo = 0.79;
-    float snowFrom = 0.86;
-
-    float heightSpan = xMinMaxHeight.y - xMinMaxHeight.x;
-    float3 posXY = float3(PSInput.WorldPosition.xy, 0.0);
-    float normAdjust = 0.1 * Perlin3D(PSInput.WorldPosition / 100.0);
-    float normHeight = (PSInput.WorldPosition.y - xMinMaxHeight.x) / heightSpan + normAdjust;
-
-    weights.x = (normHeight - grassFrom) / (sandTo - grassFrom);
-    weights.y = min((normHeight - sandTo) / (grassFrom - sandTo), (normHeight - rockFrom) / (grassTo - rockFrom));
-    weights.z = min((normHeight - grassTo) / (rockFrom - grassTo), (normHeight - snowFrom) / (rockTo - snowFrom));
-    weights.w = (normHeight - rockTo) / (snowFrom - rockTo);
-    weights = clamp(weights, 0.0, 1.0);
-
-    float4 farColour =
-        tex2D(SandTextureSampler, PSInput.TextureCoords) * weights.x +
-        tex2D(GrassTextureSampler, PSInput.TextureCoords) * weights.y +
-        tex2D(RockTextureSampler, PSInput.TextureCoords) * weights.z +
-        tex2D(SnowTextureSampler, PSInput.TextureCoords) * weights.w;
-
-    float4 nearColour =
-        tex2D(SandTextureSampler, PSInput.TextureCoords * 3.0) * weights.x +
-        tex2D(GrassTextureSampler, PSInput.TextureCoords * 3.0) * weights.y +
-        tex2D(RockTextureSampler, PSInput.TextureCoords * 3.0) * weights.z +
-        tex2D(SnowTextureSampler, PSInput.TextureCoords * 3.0) * weights.w;
-
-	float blendFactor = clamp((PSInput.Depth - 0.95) / 0.05, 0, 1);
+    float4 nearColour = tex2D(GrassTextureSampler, PSInput.TextureCoords * 3.0);
 
     float3 normal = normalize(PSInput.Normal - BumpMapNoiseGradient(PSInput.WorldPosition));
 
-    float3 reflectionVector = -reflect(xLightDirection, normal);
-    float specular = dot(normalize(reflectionVector), normalize(PSInput.WorldPosition - xCameraPosition));
-    specular = pow(max(specular, 0.0), 256) * weights.w; // specular on snow only
-
     float lightingFactor = clamp(dot(normal, -xLightDirection), 0.0, 1.0);
 
-	output.Color = lerp(nearColour, farColour, blendFactor);
+	output.Color = nearColour;
     output.Color.rgb *= (saturate(lightingFactor) + xAmbient);
-    output.Color.rgb += specular;
 	output.Color.rgb *= PSInput.Attenuation;
 	output.Color.rgb += PSInput.ScatteringColour;
 
