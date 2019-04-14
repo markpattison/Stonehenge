@@ -34,7 +34,6 @@ type LandGame() as _this =
     let mutable textures = Unchecked.defaultof<Textures>
     let mutable lightDirection = Unchecked.defaultof<Vector3>
     let mutable hdrRenderTarget = Unchecked.defaultof<RenderTarget2D>
-    let mutable noClipPlane = Unchecked.defaultof<Vector4>
     let mutable camera = Unchecked.defaultof<FreeCamera>
     let mutable input = Unchecked.defaultof<Input>
     let mutable originalMouseState = Unchecked.defaultof<MouseState>
@@ -84,7 +83,6 @@ type LandGame() as _this =
 
         let pp = device.PresentationParameters
         hdrRenderTarget <- new RenderTarget2D(device, pp.BackBufferWidth, pp.BackBufferHeight, false, SurfaceFormat.HalfVector4, DepthFormat.Depth24)
-        noClipPlane <- Vector4.Zero
 
         spriteBatch <- new SpriteBatch(device)
 
@@ -158,7 +156,7 @@ type LandGame() as _this =
         device.SetRenderTarget(hdrRenderTarget)
 
         do device.Clear(Color.Black)
-        _this.DrawApartFromSky false view noClipPlane
+        _this.DrawApartFromSky false view
         sky.DrawSkyDome world projection lightDirection camera view
         //_this.DrawDebug perlinTexture3D
 
@@ -177,12 +175,12 @@ type LandGame() as _this =
 
         do base.Draw(gameTime)
 
-    member _this.DrawApartFromSky x (viewMatrix: Matrix) (clipPlane: Vector4) =
-        _this.DrawTerrain x viewMatrix clipPlane
+    member _this.DrawApartFromSky x (viewMatrix: Matrix) =
+        _this.DrawTerrain x viewMatrix
         //_this.DrawSphere viewMatrix
         _this.DrawAxesHint viewMatrix
 
-    member _this.DrawTerrain (x: bool) (viewMatrix: Matrix) (clipPlane: Vector4) =
+    member _this.DrawTerrain (x: bool) (viewMatrix: Matrix) =
         let effect = effects.GroundFromAtmosphere
 
         effect.CurrentTechnique <- effect.Techniques.["GroundFromAtmosphere"]
