@@ -7,9 +7,9 @@ open Stonehenge.EnvironmentParameters
 
 type Effects =
     {
-        Effect: Effect;
-        Hdr: Effect;
-        SkyFromAtmosphere: Effect;
+        Effect: Effect
+        Hdr: Effect
+        SkyFromAtmosphere: Effect
         GroundFromAtmosphere: Effect
     }
 
@@ -22,10 +22,6 @@ type Textures =
     }
 
 let loadEffects (game: Game) =
-    let a = game.Content.Load<Effect>("Effects/effects")
-    let b = game.Content.Load<Effect>("Effects/hdr")
-    let c = game.Content.Load<Effect>("Effects/skyFromAtmosphere")
-    let d = game.Content.Load<Effect>("Effects/groundFromAtmosphere")
     {
         Effect = game.Content.Load<Effect>("Effects/effects")
         Hdr = game.Content.Load<Effect>("Effects/hdr")

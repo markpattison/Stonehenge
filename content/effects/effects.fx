@@ -234,6 +234,47 @@ technique Coloured
 	}
 }
 
+//------- Technique: ColouredOnly --------
+
+struct ColouredOnlyVertexToPixel
+{
+	float4 Position      : SV_POSITION;
+	float4 Color         : TEXCOORD0;
+};
+
+ColouredOnlyVertexToPixel ColouredOnlyVS(float4 inPos : SV_POSITION, float4 inColor : COLOR0)
+{
+	ColouredOnlyVertexToPixel Output = (ColouredOnlyVertexToPixel)0;
+
+	float4x4 preViewProjection = mul(xView, xProjection);
+	float4x4 preWorldViewProjection = mul(xWorld, preViewProjection);
+
+	float4 worldPosition = mul(inPos, xWorld);
+	Output.Position = mul(inPos, preWorldViewProjection);
+
+	Output.Color = inColor;
+
+	return Output;
+}
+
+PixelToFrame ColouredOnlyPS(ColouredOnlyVertexToPixel PSIn)
+{
+	PixelToFrame Output = (PixelToFrame)0;
+
+	Output.Color = PSIn.Color;
+
+	return Output;
+}
+
+technique ColouredOnly
+{
+	pass Pass0
+	{
+		VertexShader = compile vs_4_0 ColouredOnlyVS();
+		PixelShader = compile ps_4_0 ColouredOnlyPS();
+	}
+}
+
 //------- Technique: Textured --------
 
 VertexToPixel TexturedVS(float4 inPos : SV_POSITION, float3 inNormal : NORMAL, float2 inTexCoords : TEXCOORD0)

@@ -42,6 +42,7 @@ type LandGame() as _this =
     let mutable sphereVertices = Unchecked.defaultof<VertexPositionNormal[]>
     let mutable sphereIndices = Unchecked.defaultof<int[]>
     let mutable minMaxTerrainHeight = Unchecked.defaultof<Vector2>
+    let mutable axesHint = Unchecked.defaultof<VertexPositionColor[]>
     do graphics.GraphicsProfile <- GraphicsProfile.HiDef
     do graphics.PreferredBackBufferWidth <- 900
     do graphics.PreferredBackBufferHeight <- 700
@@ -54,7 +55,7 @@ type LandGame() as _this =
         do terrain.DeformCircularFaults 500 1.0f 20.0f 100.0f
         do terrain.Normalize 0.5f 2.0f
         do terrain.Stretch 1.0f
-        do terrain.Normalize 0.0f 10.0f
+        do terrain.Normalize -10.0f 0.0f
         vertices <- GetVertices terrain
         indices <- GetIndices terrain.Size
         minMaxTerrainHeight <-
@@ -128,6 +129,8 @@ type LandGame() as _this =
 
         sky <- new Sky(effects.SkyFromAtmosphere, environment, device)
 
+        axesHint <- Stonehenge.AxesHint.vertices
+
     override _this.Update(gameTime) =
         let time = float32 gameTime.TotalGameTime.TotalSeconds
 
@@ -176,7 +179,8 @@ type LandGame() as _this =
 
     member _this.DrawApartFromSky x (viewMatrix: Matrix) (clipPlane: Vector4) =
         _this.DrawTerrain x viewMatrix clipPlane
-        _this.DrawSphere viewMatrix
+        //_this.DrawSphere viewMatrix
+        _this.DrawAxesHint viewMatrix
 
     member _this.DrawTerrain (x: bool) (viewMatrix: Matrix) (clipPlane: Vector4) =
         let effect = effects.GroundFromAtmosphere
@@ -221,6 +225,20 @@ type LandGame() as _this =
             (fun pass ->
                 pass.Apply()
                 device.DrawUserIndexedPrimitives<VertexPositionNormal>(PrimitiveType.TriangleList, sphereVertices, 0, sphereVertices.Length, sphereIndices, 0, sphereIndices.Length / 3)
+            )
+
+    member _this.DrawAxesHint (viewMatrix: Matrix) =
+        let effect = effects.Effect
+
+        effect.CurrentTechnique <- effect.Techniques.["ColouredOnly"]
+        effect.Parameters.["xWorld"].SetValue(Matrix.Identity)
+        effect.Parameters.["xView"].SetValue(viewMatrix)
+        effect.Parameters.["xProjection"].SetValue(projection)
+
+        effect.CurrentTechnique.Passes |> Seq.iter
+            (fun pass ->
+                pass.Apply()
+                device.DrawUserPrimitives<VertexPositionColor>(PrimitiveType.LineList, axesHint, 0, axesHint.Length / 2)
             )
 
     member _this.DrawDebug (texture: Texture2D) =
