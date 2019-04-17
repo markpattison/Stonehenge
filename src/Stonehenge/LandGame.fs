@@ -54,7 +54,7 @@ type LandGame() as _this =
         do terrain.DeformCircularFaults 500 1.0f 20.0f 100.0f
         do terrain.Normalize 0.5f 2.0f
         do terrain.Stretch 1.0f
-        do terrain.Normalize -10.0f 0.0f
+        do terrain.Normalize 0.0f 10.0f
         vertices <- GetVertices terrain
         indices <- GetIndices terrain.Size
         minMaxTerrainHeight <-
@@ -229,7 +229,7 @@ type LandGame() as _this =
         let effect = effects.Effect
 
         effect.CurrentTechnique <- effect.Techniques.["ColouredOnly"]
-        effect.Parameters.["xWorld"].SetValue(Matrix.Identity)
+        effect.Parameters.["xWorld"].SetValue(Matrix.CreateTranslation(10.0f * Vector3.UnitY))
         effect.Parameters.["xView"].SetValue(viewMatrix)
         effect.Parameters.["xProjection"].SetValue(projection)
 
