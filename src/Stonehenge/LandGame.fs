@@ -132,6 +132,10 @@ type LandGame() as _this =
         axesHint <- Stonehenge.AxesHint.vertices
 
         cubeTriangles <- Stonehenge.Stone.cubeTriangles
+        stoneWorldMatrices <-
+            Stonehenge.StoneList.stones
+            |> Array.ofList
+            |> Array.map Stonehenge.Stone.worldMatrixForStone
 
     override _this.Update(gameTime) =
         let time = float32 gameTime.TotalGameTime.TotalSeconds

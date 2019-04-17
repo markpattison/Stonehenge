@@ -95,7 +95,8 @@ let stoneWidth = 0.5f
 
 let worldMatrixForStone stone =
     let centerToZero = Matrix.CreateTranslation(-0.5f, -0.5f, -0.5f)
-    let stretch, yOffset = match stone.Orientation with
+    let stretch, yOffset =
+        match stone.Orientation with
         | Flat -> Matrix.CreateScale(stoneLength, stoneWidth, stoneWidth), stoneLength + stoneWidth / 2.0f
         | Upright -> Matrix.CreateScale(stoneWidth, stoneLength, stoneWidth), stoneLength / 2.0f
     let shiftY = Matrix.CreateTranslation(0.0f, yOffset, 0.0f)
