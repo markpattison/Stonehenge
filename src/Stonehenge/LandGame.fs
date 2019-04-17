@@ -42,6 +42,8 @@ type LandGame() as _this =
     let mutable sphereIndices = Unchecked.defaultof<int[]>
     let mutable minMaxTerrainHeight = Unchecked.defaultof<Vector2>
     let mutable axesHint = Unchecked.defaultof<VertexPositionColor[]>
+    let mutable cubeTriangles = Unchecked.defaultof<VertexPositionNormalTexture[]>
+    let mutable stoneWorldMatrices = Unchecked.defaultof<Matrix[]>
     do graphics.GraphicsProfile <- GraphicsProfile.HiDef
     do graphics.PreferredBackBufferWidth <- 900
     do graphics.PreferredBackBufferHeight <- 700
@@ -128,6 +130,8 @@ type LandGame() as _this =
         sky <- new Sky(effects.SkyFromAtmosphere, environment, device)
 
         axesHint <- Stonehenge.AxesHint.vertices
+
+        cubeTriangles <- Stonehenge.Stone.cubeTriangles
 
     override _this.Update(gameTime) =
         let time = float32 gameTime.TotalGameTime.TotalSeconds

@@ -98,6 +98,7 @@
     <Compile Include="ContentLoader.fs" />
     <Compile Include="Sky.fs" />
     <Compile Include="AxesHint.fs" />
+    <Compile Include="Stone.fs" />
     <Compile Include="LandGame.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
