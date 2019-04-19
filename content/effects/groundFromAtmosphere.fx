@@ -320,7 +320,7 @@ PixelToFrame GroundFromAtmospherePS(GroundFromAtmosphere_VertexToPixel PSInput)
 {
     PixelToFrame output = (PixelToFrame) 0;
 
-    float4 nearColour = tex2D(GrassTextureSampler, PSInput.TextureCoords * 3.0);
+    float4 nearColour = tex2D(GrassTextureSampler, PSInput.TextureCoords * 20.0);
 
     float3 normal = normalize(PSInput.Normal - BumpMapNoiseGradient(PSInput.WorldPosition));
 
