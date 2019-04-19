@@ -15,20 +15,20 @@ let cubeTriangles =
     let _vertices : VertexPositionNormalTexture[] = Array.zeroCreate 36
 
     // Calculate the position of the vertices on the top face.
-    let topLeftFront  = Vector3(-1.0f, 1.0f, -1.0f)
-    let topLeftBack   = Vector3(-1.0f, 1.0f, 1.0f)
-    let topRightFront = Vector3(1.0f, 1.0f, -1.0f)
+    let topLeftFront  = Vector3(0.0f, 1.0f, 0.0f)
+    let topLeftBack   = Vector3(0.0f, 1.0f, 1.0f)
+    let topRightFront = Vector3(1.0f, 1.0f, 0.0f)
     let topRightBack  = Vector3(1.0f, 1.0f, 1.0f)
  
     // Calculate the position of the vertices on the bottom face.
-    let btmLeftFront  = Vector3(-1.0f, -1.0f, -1.0f)
-    let btmLeftBack   = Vector3(-1.0f, -1.0f, 1.0f)
-    let btmRightFront = Vector3(1.0f, -1.0f, -1.0f)
-    let btmRightBack  = Vector3(1.0f, -1.0f, 1.0f)
+    let btmLeftFront  = Vector3(0.0f, 0.0f, 0.0f)
+    let btmLeftBack   = Vector3(0.0f, 0.0f, 1.0f)
+    let btmRightFront = Vector3(1.0f, 0.0f, 0.0f)
+    let btmRightBack  = Vector3(1.0f, 0.0f, 1.0f)
  
     // Normal vectors for each face (needed for lighting / display)
-    let normalFront  = Vector3(0.0f, 0.0f, 1.0f)
-    let normalBack   = Vector3(0.0f, 0.0f, -1.0f)
+    let normalFront  = Vector3(0.0f, 0.0f, -1.0f)
+    let normalBack   = Vector3(0.0f, 0.0f, 1.0f)
     let normalTop    = Vector3(0.0f, 1.0f, 0.0f)
     let normalBottom = Vector3(0.0f, -1.0f, 0.0f)
     let normalLeft   = Vector3(-1.0f, 0.0f, 0.0f)

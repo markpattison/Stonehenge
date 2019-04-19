@@ -404,3 +404,75 @@ technique Coloured
         PixelShader = compile ps_4_0 ColouredPS();
     }
 }
+
+// rocks
+
+struct Rock_ToVertex
+{
+	float4 Position : SV_POSITION;
+	float3 Normal : NORMAL;
+	float2 TexCoords : TEXCOORD0;
+};
+
+struct Rock_VertexToPixel
+{
+	float4 Position : SV_POSITION;
+    float3 Normal : NORMAL;
+	float3 ScatteringColour : COLOR0;
+	float3 Attenuation : COLOR1;
+	float2 TextureCoords : TEXCOORD1;
+	float Depth : TEXCOORD4;
+	float3 WorldPosition: TEXCOORD5;
+};
+
+Rock_VertexToPixel RockVS(Rock_ToVertex VSInput)
+{
+	Rock_VertexToPixel output = (Rock_VertexToPixel)0;
+
+	float4x4 preViewProjection = mul(xView, xProjection);
+	float4x4 preWorldViewProjection = mul(xWorld, preViewProjection);
+
+	float4 worldPosition = mul(VSInput.Position, xWorld);
+	output.WorldPosition = worldPosition.xyz;
+	output.Position = mul(VSInput.Position, preWorldViewProjection);
+	output.TextureCoords = VSInput.TexCoords;
+
+	float3 normal = normalize(mul(float4(normalize(VSInput.Normal), 0.0), xWorld)).xyz;
+    output.Normal = normal;
+
+	output.Depth = output.Position.z / output.Position.w;
+
+	ScatteringResult scattering = Scattering(worldPosition.xyz);
+
+	output.ScatteringColour = scattering.ScatteringColour;
+	output.Attenuation = scattering.Attenuation;
+
+	return output;
+}
+
+PixelToFrame RockPS(Rock_VertexToPixel PSInput)
+{
+    PixelToFrame output = (PixelToFrame) 0;
+
+    float4 nearColour = tex2D(RockTextureSampler, PSInput.TextureCoords);
+
+    float3 normal = normalize(PSInput.Normal - BumpMapNoiseGradient(PSInput.WorldPosition));
+
+    float lightingFactor = clamp(dot(normal, -xLightDirection), 0.0, 1.0);
+
+	output.Color = nearColour;
+    output.Color.rgb *= (saturate(lightingFactor) + xAmbient);
+	output.Color.rgb *= PSInput.Attenuation;
+	output.Color.rgb += PSInput.ScatteringColour;
+
+	return output;
+}
+
+technique Rock
+{
+	pass Pass0
+	{
+		VertexShader = compile vs_4_0 RockVS();
+		PixelShader = compile ps_4_0 RockPS();
+	}
+}

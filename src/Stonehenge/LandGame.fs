@@ -56,7 +56,7 @@ type LandGame() as _this =
         do terrain.DeformCircularFaults 500 1.0f 20.0f 100.0f
         do terrain.Normalize 0.5f 2.0f
         do terrain.Stretch 1.0f
-        do terrain.Normalize 0.0f 10.0f
+        do terrain.Normalize 0.0f 1.0f
         vertices <- GetVertices terrain
         indices <- GetIndices terrain.Size
         minMaxTerrainHeight <-
@@ -186,6 +186,7 @@ type LandGame() as _this =
     member _this.DrawApartFromSky x (viewMatrix: Matrix) =
         _this.DrawTerrain x viewMatrix
         //_this.DrawSphere viewMatrix
+        _this.DrawStones viewMatrix
         _this.DrawAxesHint viewMatrix
 
     member _this.DrawTerrain (x: bool) (viewMatrix: Matrix) =
@@ -215,7 +216,35 @@ type LandGame() as _this =
                 pass.Apply()
                 device.DrawUserIndexedPrimitives<VertexPositionNormalTexture>(PrimitiveType.TriangleList, vertices, 0, vertices.Length, indices, 0, indices.Length / 3)
             )
+    
+    member _this.DrawStones (viewMatrix: Matrix) =
+        let effect = effects.GroundFromAtmosphere
 
+        effect.CurrentTechnique <- effect.Techniques.["Rock"]
+        effect.Parameters.["xView"].SetValue(viewMatrix)
+        effect.Parameters.["xProjection"].SetValue(projection)
+        effect.Parameters.["xCameraPosition"].SetValue(camera.Position)
+        effect.Parameters.["xLightDirection"].SetValue(lightDirection)
+        effect.Parameters.["xRockTexture"].SetValue(textures.Rock)
+        effect.Parameters.["xAmbient"].SetValue(0.5f)
+        effect.Parameters.["xMinMaxHeight"].SetValue(minMaxTerrainHeight)
+        effect.Parameters.["xPerlinSize3D"].SetValue(15.0f)
+        effect.Parameters.["xRandomTexture3D"].SetValue(perlinTexture3D)
+
+        environment.Atmosphere.ApplyToEffect effect
+
+        device.BlendState <- BlendState.Opaque
+
+        stoneWorldMatrices
+        |> Array.iter (fun wm ->
+            effect.Parameters.["xWorld"].SetValue(wm)
+
+            effect.CurrentTechnique.Passes |> Seq.iter
+                (fun pass ->
+                    pass.Apply()
+                    device.DrawUserPrimitives<VertexPositionNormalTexture>(PrimitiveType.TriangleList, cubeTriangles, 0, cubeTriangles.Length / 3)
+                ))
+    
     member _this.DrawSphere (viewMatrix: Matrix) =
         let effect = effects.GroundFromAtmosphere
 
