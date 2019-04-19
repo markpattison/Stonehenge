@@ -90,8 +90,8 @@ let cubeTriangles =
 
     _vertices
 
-let stoneLength = 2.0f
-let stoneWidth = 0.5f
+let stoneLength = 4.0f
+let stoneWidth = 1.0f
 
 let worldMatrixForStone stone =
     let centerToZero = Matrix.CreateTranslation(-0.5f, -0.5f, -0.5f)
@@ -102,7 +102,7 @@ let worldMatrixForStone stone =
     let shiftY = Matrix.CreateTranslation(0.0f, yOffset, 0.0f)
 
     let shiftZ = Matrix.CreateTranslation(0.0f, 0.0f, stone.Radius)
-    let rotation = Matrix.CreateRotationY(stone.Rotation / MathHelper.TwoPi)
+    let rotation = Matrix.CreateRotationY(-stone.Rotation * MathHelper.Pi / 180.0f)
 
     let world = centerToZero * stretch * shiftY * shiftZ * rotation
     
