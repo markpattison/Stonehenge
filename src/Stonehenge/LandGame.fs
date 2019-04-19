@@ -55,8 +55,9 @@ type LandGame() as _this =
         terrain <- Terrain 512
         do terrain.DeformCircularFaults 500 1.0f 20.0f 100.0f
         do terrain.Normalize 0.5f 2.0f
-        do terrain.Stretch 1.0f
-        do terrain.Normalize 0.0f 1.0f
+        do terrain.Stretch 2.0f
+        do terrain.Normalize -5.0f 10.0f
+        do terrain.FlattenAroundCenter 20.0f 80.0f 0.0f
         vertices <- GetVertices terrain
         indices <- GetIndices terrain.Size
         minMaxTerrainHeight <-

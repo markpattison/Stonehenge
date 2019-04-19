@@ -53,6 +53,16 @@ type Terrain(size) =
         this.ApplyToHeights (fun height -> height ** factor)
     member _this.MinMax() =
         MinMax height
+    
+    member _this.FlattenAroundCenter radius1 radius2 flattenTo =
+        let middle = (single size) / 2.0f
+        for x = 0 to size do
+            for z = 0 to size do
+                let dist = sqrt ((single x - middle) * (single x - middle) + (single z - middle) * (single z - middle))
+                if dist < radius1 then
+                    height.[x, z] <- flattenTo
+                else if dist < radius2 then
+                    height.[x, z] <- flattenTo + (height.[x, z] - flattenTo) * (dist - radius1) / (radius2 - radius1)
 
 let Normals (terrain:Terrain) =
     let normals = Array2D.zeroCreate<Vector3> terrain.SizeVertices terrain.SizeVertices
