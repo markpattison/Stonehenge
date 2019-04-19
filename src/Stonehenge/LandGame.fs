@@ -80,7 +80,7 @@ type LandGame() as _this =
         effects <- loadEffects _this
         textures <- loadTextures _this
 
-        let dir = Vector3(0.0f, -0.5f, -1.0f)
+        let dir = Vector3(0.0f, 0.27f, -0.96f)
         dir.Normalize()
         lightDirection <- dir
 
@@ -89,7 +89,7 @@ type LandGame() as _this =
 
         spriteBatch <- new SpriteBatch(device)
 
-        let startPosition = Vector3(0.0f, 10.0f, -(single terrain.Size) / 2.0f)
+        let startPosition = Vector3(0.0f, 10.0f, -(single terrain.Size) / 8.0f)
 
         camera <- FreeCamera(startPosition, 0.0f, 0.0f)
         Mouse.SetPosition(_this.Window.ClientBounds.Width / 2, _this.Window.ClientBounds.Height / 2)
@@ -156,6 +156,8 @@ type LandGame() as _this =
 
         if input.PageDown then lightDirection <- Vector3.Transform(lightDirection, Matrix.CreateRotationX(0.003f))
         if input.PageUp then lightDirection <- Vector3.Transform(lightDirection, Matrix.CreateRotationX(-0.003f))
+
+        lightDirection <- Vector3.Transform(lightDirection, Matrix.CreateRotationX(-0.003f))
 
         do base.Update(gameTime)
 
