@@ -187,7 +187,7 @@ type LandGame() as _this =
         _this.DrawTerrain x viewMatrix
         //_this.DrawSphere viewMatrix
         _this.DrawStones viewMatrix
-        _this.DrawAxesHint viewMatrix
+        //_this.DrawAxesHint viewMatrix
 
     member _this.DrawTerrain (x: bool) (viewMatrix: Matrix) =
         let effect = effects.GroundFromAtmosphere
