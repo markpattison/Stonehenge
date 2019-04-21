@@ -4,7 +4,8 @@ open Stonehenge.Stone
 
 let stones =
     [
-        { Radius = 10.0f; Rotation = 360.0f; Orientation = Upright }
+        { Radius = 10.0f; Rotation = 350.0f; Orientation = Upright }
+        { Radius = 10.0f; Rotation = 10.0f; Orientation = Upright }
 
         { Radius = 10.0f; Rotation = 20.0f; Orientation = Upright }
         { Radius = 10.0f; Rotation = 30.0f; Orientation = Flat }
@@ -20,7 +21,9 @@ let stones =
         { Radius = 10.0f; Rotation = 150.0f; Orientation = Flat }
         { Radius = 10.0f; Rotation = 160.0f; Orientation = Upright }
 
-        { Radius = 10.0f; Rotation = 180.0f; Orientation = Upright }
+        //{ Radius = 10.0f; Rotation = 170.0f; Orientation = Upright }
+        //{ Radius = 10.0f; Rotation = 190.0f; Orientation = Upright }
+
         { Radius = 10.0f; Rotation = 200.0f; Orientation = Upright }
         { Radius = 10.0f; Rotation = 222.0f; Orientation = Upright }
         
