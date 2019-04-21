@@ -135,3 +135,21 @@ technique SkyFromAtmosphere
 		PixelShader = compile ps_4_0 SkyFromAtmospherePS();
 	}
 }
+
+PixelToFrame BlackPS(SkyFromAtmosphere_VertexToPixel PSInput)
+{
+	PixelToFrame Output = (PixelToFrame)0;
+
+	Output.Color.a = 1.0;
+
+	return Output;
+}
+
+technique Black
+{
+	pass Pass0
+	{
+		VertexShader = compile vs_4_0 SkyFromAtmosphereVS();
+		PixelShader = compile ps_4_0 BlackPS();
+	}
+}

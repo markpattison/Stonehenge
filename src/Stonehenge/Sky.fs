@@ -40,16 +40,26 @@ type Sky(effect: Effect, environment: EnvironmentParameters, device: GraphicsDev
 
         environment.Atmosphere.ApplyToEffect effect
 
-    //    let rs = device.RasterizerState
-    //    let rs' = new RasterizerState()
-    //    rs'.FillMode <- FillMode.WireFrame
-    //    device.RasterizerState <- rs'
-
         effect.CurrentTechnique.Passes |> Seq.iter
             (fun pass ->
                 pass.Apply()
                 device.DrawUserIndexedPrimitives<VertexPositionNormal>(PrimitiveType.TriangleList, skySphereVertices, 0, skySphereVertices.Length, skySphereIndices, 0, skySphereIndices.Length / 3)
             )
+
+        //let rs = device.RasterizerState
+        //let rs' = new RasterizerState()
+        //rs'.FillMode <- FillMode.WireFrame
+        //device.RasterizerState <- rs'
+
+        //effect.CurrentTechnique <- effect.Techniques.["Black"]
+
+        //effect.CurrentTechnique.Passes |> Seq.iter
+        //    (fun pass ->
+        //        pass.Apply()
+        //        device.DrawUserIndexedPrimitives<VertexPositionNormal>(PrimitiveType.TriangleList, skySphereVertices, 0, skySphereVertices.Length, skySphereIndices, 0, skySphereIndices.Length / 3)
+        //    )
+        //device.RasterizerState <- rs
+
         device.DepthStencilState <- DepthStencilState.Default
 
-    //    device.RasterizerState <- rs
+
