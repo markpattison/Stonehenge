@@ -38,8 +38,6 @@ type LandGame() as _this =
     let mutable input = Unchecked.defaultof<Input>
     let mutable originalMouseState = Unchecked.defaultof<MouseState>
     let mutable perlinTexture3D = Unchecked.defaultof<Texture3D>
-    let mutable sphereVertices = Unchecked.defaultof<VertexPositionNormal[]>
-    let mutable sphereIndices = Unchecked.defaultof<int[]>
     let mutable minMaxTerrainHeight = Unchecked.defaultof<Vector2>
     let mutable axesHint = Unchecked.defaultof<VertexPositionColor[]>
     let mutable cubeTriangles = Unchecked.defaultof<VertexPositionNormalTexture[]>
@@ -122,12 +120,6 @@ type LandGame() as _this =
         let randomVectors = Array.init (16 * 16 * 16) randomVectorColour
         perlinTexture3D.SetData<Color>(randomVectors)
 
-        let sphere = create 2
-
-        let (sphereVerts, sphereInds) = getVerticesAndIndices Smooth OutwardFacing Even sphere
-        sphereVertices <- sphereVerts
-        sphereIndices <- sphereInds
-
         sky <- new Sky(effects.SkyFromAtmosphere, environment, device)
 
         axesHint <- Stonehenge.AxesHint.vertices
@@ -183,7 +175,6 @@ type LandGame() as _this =
 
     member _this.DrawApartFromSky x (viewMatrix: Matrix) =
         _this.DrawTerrain x viewMatrix
-        //_this.DrawSphere viewMatrix
         _this.DrawStones viewMatrix
         //_this.DrawAxesHint viewMatrix
 
@@ -242,23 +233,6 @@ type LandGame() as _this =
                     pass.Apply()
                     device.DrawUserPrimitives<VertexPositionNormalTexture>(PrimitiveType.TriangleList, cubeTriangles, 0, cubeTriangles.Length / 3)
                 ))
-    
-    member _this.DrawSphere (viewMatrix: Matrix) =
-        let effect = effects.GroundFromAtmosphere
-
-        let sphereWorld = Matrix.Multiply(Matrix.CreateTranslation(0.0f, 1.5f, 0.0f), Matrix.CreateScale(10.0f))
-        effect.CurrentTechnique <- effect.Techniques.["Coloured"]
-        effect.Parameters.["xWorld"].SetValue(sphereWorld)
-        effect.Parameters.["xView"].SetValue(viewMatrix)
-        effect.Parameters.["xProjection"].SetValue(projection)
-        effect.Parameters.["xLightDirection"].SetValue(lightDirection)
-        effect.Parameters.["xAmbient"].SetValue(0.5f)
-        
-        effect.CurrentTechnique.Passes |> Seq.iter
-            (fun pass ->
-                pass.Apply()
-                device.DrawUserIndexedPrimitives<VertexPositionNormal>(PrimitiveType.TriangleList, sphereVertices, 0, sphereVertices.Length, sphereIndices, 0, sphereIndices.Length / 3)
-            )
 
     member _this.DrawAxesHint (viewMatrix: Matrix) =
         let effect = effects.Effect
