@@ -10,7 +10,7 @@ open Stonehenge.EnvironmentParameters
 open Stonehenge.FreeCamera
 
 type Sky(effect: Effect, environment: EnvironmentParameters, device: GraphicsDevice) as _this =
-    let skySphere = Sphere.create 4
+    let skySphere = Sphere.create 5
     let (skySphereVertices, skySphereIndices) = Sphere.getVerticesAndIndices Smooth InwardFacing Concentrated skySphere
 
     member _this.DrawSkyDome (world: Matrix) (projection: Matrix) (lightDirection: Vector3) (camera: FreeCamera) (viewMatrix: Matrix) =
