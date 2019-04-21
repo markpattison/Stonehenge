@@ -27,7 +27,6 @@ type LandGame() as _this =
     let mutable indices = Unchecked.defaultof<int[]>
     let mutable world = Unchecked.defaultof<Matrix>
     let mutable view = Unchecked.defaultof<Matrix>
-    let mutable reflectionView = Unchecked.defaultof<Matrix>
     let mutable projection = Unchecked.defaultof<Matrix>
     let mutable device = Unchecked.defaultof<GraphicsDevice>
     let mutable terrain = Unchecked.defaultof<Terrain>
@@ -149,11 +148,6 @@ type LandGame() as _this =
         camera <- camera.Updated(input, time)
 
         view <- camera.ViewMatrix
-
-        let reflectionCameraAt = Vector3(camera.Position.X, -camera.Position.Y, camera.Position.Z)
-        let reflectionCameraLookAt = Vector3(camera.LookAt.X, -camera.LookAt.Y, camera.LookAt.Z)
-        let invUpVector = Vector3.Cross(camera.RightDirection, reflectionCameraLookAt - reflectionCameraAt)
-        reflectionView <- Matrix.CreateLookAt(reflectionCameraAt, reflectionCameraLookAt, invUpVector)
 
         //if input.PageDown then lightDirection <- Vector3.Transform(lightDirection, Matrix.CreateRotationX(0.003f))
         //if input.PageUp then lightDirection <- Vector3.Transform(lightDirection, Matrix.CreateRotationX(-0.003f))
