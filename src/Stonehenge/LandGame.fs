@@ -88,7 +88,7 @@ type LandGame() as _this =
 
         spriteBatch <- new SpriteBatch(device)
 
-        startPosition <- Vector3(0.0f, 2.0f, -40.0f)
+        startPosition <- Vector3(0.0f, 2.0f, -30.0f)
 
         camera <- FreeCamera(startPosition, 0.0f, 0.0f)
         Mouse.SetPosition(_this.Window.ClientBounds.Width / 2, _this.Window.ClientBounds.Height / 2)
@@ -158,7 +158,7 @@ type LandGame() as _this =
         let rotAngle = (ease rotProportion) * MathHelper.Pi
 
         let rot = Matrix.CreateRotationY(rotAngle)
-        camera <- FreeCamera(Vector3.Transform(startPosition, rot) + 5.0f * (sin rotAngle) * Vector3.UnitY, -0.1f * (sin rotAngle), -rotAngle)
+        camera <- FreeCamera(Vector3.Transform(startPosition, rot) + 15.0f * (sin rotAngle) * Vector3.UnitY, -0.4f * (sin rotAngle), -rotAngle)
 
         do base.Update(gameTime)
 
