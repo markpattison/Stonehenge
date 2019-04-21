@@ -31,6 +31,7 @@ type LandGame() as _this =
     let mutable device = Unchecked.defaultof<GraphicsDevice>
     let mutable terrain = Unchecked.defaultof<Terrain>
     let mutable textures = Unchecked.defaultof<Textures>
+    let mutable startPosition = Unchecked.defaultof<Vector3>
     let mutable initialLightDirection = Unchecked.defaultof<Vector3>
     let mutable lightDirection = Unchecked.defaultof<Vector3>
     let mutable hdrRenderTarget = Unchecked.defaultof<RenderTarget2D>
@@ -87,7 +88,7 @@ type LandGame() as _this =
 
         spriteBatch <- new SpriteBatch(device)
 
-        let startPosition = Vector3(0.0f, 10.0f, -(single terrain.Size) / 8.0f)
+        startPosition <- Vector3(0.0f, 2.0f, -40.0f)
 
         camera <- FreeCamera(startPosition, 0.0f, 0.0f)
         Mouse.SetPosition(_this.Window.ClientBounds.Width / 2, _this.Window.ClientBounds.Height / 2)
@@ -137,7 +138,7 @@ type LandGame() as _this =
 
         if input.Quit then _this.Exit()
 
-        camera <- camera.Updated(input, time)
+        //camera <- camera.Updated(input, time)
 
         view <- camera.ViewMatrix
 
@@ -145,6 +146,17 @@ type LandGame() as _this =
         //if input.PageUp then lightDirection <- Vector3.Transform(lightDirection, Matrix.CreateRotationX(-0.003f))
 
         lightDirection <- Vector3.Transform(initialLightDirection, Matrix.CreateRotationX(time * -MathHelper.TwoPi / 40.0f))
+
+        let rotProportion =
+            match time with
+            | t when t < 5.0f  -> 0.0f
+            | t when t < 20.0f -> (t - 5.0f) / 15.0f
+            | _ -> 1.0f
+
+        let rotAngle = rotProportion * MathHelper.Pi
+
+        let rot = Matrix.CreateRotationY(rotAngle)
+        camera <- FreeCamera(Vector3.Transform(startPosition, rot) + 5.0f * (sin rotAngle) * Vector3.UnitY, -0.1f * (sin rotAngle), -rotAngle)
 
         do base.Update(gameTime)
 
