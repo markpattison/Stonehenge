@@ -32,6 +32,7 @@ type LandGame() as _this =
     let mutable device = Unchecked.defaultof<GraphicsDevice>
     let mutable terrain = Unchecked.defaultof<Terrain>
     let mutable textures = Unchecked.defaultof<Textures>
+    let mutable initialLightDirection = Unchecked.defaultof<Vector3>
     let mutable lightDirection = Unchecked.defaultof<Vector3>
     let mutable hdrRenderTarget = Unchecked.defaultof<RenderTarget2D>
     let mutable camera = Unchecked.defaultof<FreeCamera>
@@ -82,7 +83,7 @@ type LandGame() as _this =
 
         let dir = Vector3(0.0f, 0.27f, -0.96f)
         dir.Normalize()
-        lightDirection <- dir
+        initialLightDirection <- dir
 
         let pp = device.PresentationParameters
         hdrRenderTarget <- new RenderTarget2D(device, pp.BackBufferWidth, pp.BackBufferHeight, false, SurfaceFormat.HalfVector4, DepthFormat.Depth24)
@@ -154,10 +155,10 @@ type LandGame() as _this =
         let invUpVector = Vector3.Cross(camera.RightDirection, reflectionCameraLookAt - reflectionCameraAt)
         reflectionView <- Matrix.CreateLookAt(reflectionCameraAt, reflectionCameraLookAt, invUpVector)
 
-        if input.PageDown then lightDirection <- Vector3.Transform(lightDirection, Matrix.CreateRotationX(0.003f))
-        if input.PageUp then lightDirection <- Vector3.Transform(lightDirection, Matrix.CreateRotationX(-0.003f))
+        //if input.PageDown then lightDirection <- Vector3.Transform(lightDirection, Matrix.CreateRotationX(0.003f))
+        //if input.PageUp then lightDirection <- Vector3.Transform(lightDirection, Matrix.CreateRotationX(-0.003f))
 
-        lightDirection <- Vector3.Transform(lightDirection, Matrix.CreateRotationX(-0.003f))
+        lightDirection <- Vector3.Transform(initialLightDirection, Matrix.CreateRotationX(time * -MathHelper.TwoPi / 40.0f))
 
         do base.Update(gameTime)
 
