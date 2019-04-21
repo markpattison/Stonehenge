@@ -152,8 +152,10 @@ type LandGame() as _this =
             | t when t < 5.0f  -> 0.0f
             | t when t < 20.0f -> (t - 5.0f) / 15.0f
             | _ -> 1.0f
+        
+        let ease x = -0.5f * (cos (MathHelper.Pi * x) - 1.0f)
 
-        let rotAngle = rotProportion * MathHelper.Pi
+        let rotAngle = (ease rotProportion) * MathHelper.Pi
 
         let rot = Matrix.CreateRotationY(rotAngle)
         camera <- FreeCamera(Vector3.Transform(startPosition, rot) + 5.0f * (sin rotAngle) * Vector3.UnitY, -0.1f * (sin rotAngle), -rotAngle)
