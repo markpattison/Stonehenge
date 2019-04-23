@@ -76,6 +76,10 @@ sampler SnowTextureSampler = sampler_state
 texture xRandomTexture3D;
 sampler RandomTextureSampler3D = sampler_state { texture = <xRandomTexture3D>; AddressU = WRAP; AddressV = WRAP; AddressW = WRAP; };
 
+float4x4 xLightsWorldViewProjection;
+Texture xShadowMap;
+sampler ShadowMapSampler = sampler_state { texture = <xShadowMap> ; magfilter = LINEAR; minfilter = LINEAR; mipfilter=LINEAR; AddressU = clamp; AddressV = clamp;};
+
 struct GroundFromAtmosphere_ToVertex
 {
 	float4 Position : SV_POSITION;
@@ -92,6 +96,7 @@ struct GroundFromAtmosphere_VertexToPixel
 	float2 TextureCoords : TEXCOORD1;
 	float Depth : TEXCOORD4;
 	float3 WorldPosition: TEXCOORD5;
+	float4 PositionFromLight: TEXCOORD6;
 };
 
 struct PixelToFrame
@@ -286,6 +291,7 @@ GroundFromAtmosphere_VertexToPixel GroundFromAtmosphereVS(GroundFromAtmosphere_T
 	float4 worldPosition = mul(VSInput.Position, xWorld);
 	output.WorldPosition = worldPosition.xyz;
 	output.Position = mul(VSInput.Position, preWorldViewProjection);
+	output.PositionFromLight = mul(VSInput.Position, xLightsWorldViewProjection);
 	output.TextureCoords = VSInput.TexCoords;
 
 	float3 normal = normalize(mul(float4(normalize(VSInput.Normal), 0.0), xWorld)).xyz;
@@ -318,19 +324,29 @@ float3 BumpMapNoiseGradient(float3 worldPosition)
 
 PixelToFrame GroundFromAtmospherePS(GroundFromAtmosphere_VertexToPixel PSInput)
 {
-    PixelToFrame output = (PixelToFrame) 0;
+	// shadow map
+    float2 ProjectedTexCoords;
+    ProjectedTexCoords[0] = PSInput.PositionFromLight.x / PSInput.PositionFromLight.w / 2.0f + 0.5f;
+    ProjectedTexCoords[1] = -PSInput.PositionFromLight.y / PSInput.PositionFromLight.w / 2.0f + 0.5f;
+	float depthStoredInShadowMap = tex2D(ShadowMapSampler, ProjectedTexCoords).r;
+	float realDistance = PSInput.PositionFromLight.z / PSInput.PositionFromLight.w;
+
+	PixelToFrame output = (PixelToFrame) 0;
 
     float4 nearColour = tex2D(GrassTextureSampler, PSInput.TextureCoords * 20.0);
 
     float3 normal = normalize(PSInput.Normal - BumpMapNoiseGradient(PSInput.WorldPosition));
 
-    float lightingFactor = clamp(dot(normal, -xLightDirection), 0.0, 1.0);
+	float lightingFactor =
+		((realDistance - 1.0f/100.0f) <= depthStoredInShadowMap)
+		? lightingFactor = clamp(dot(normal, -xLightDirection), 0.0, 1.0)
+		: 0.0f;
 
 	output.Color = nearColour;
     output.Color.rgb *= (saturate(lightingFactor) + xAmbient);
 	output.Color.rgb *= PSInput.Attenuation;
 	output.Color.rgb += PSInput.ScatteringColour;
-
+	
 	return output;
 }
 

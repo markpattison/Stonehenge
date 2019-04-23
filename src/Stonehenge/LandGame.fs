@@ -35,6 +35,8 @@ type LandGame() as _this =
     let mutable initialLightDirection = Unchecked.defaultof<Vector3>
     let mutable lightDirection = Unchecked.defaultof<Vector3>
     let mutable hdrRenderTarget = Unchecked.defaultof<RenderTarget2D>
+    let mutable shadowMapRenderTarget = Unchecked.defaultof<RenderTarget2D>
+    let mutable shadowMap = Unchecked.defaultof<Texture2D>
     let mutable camera = Unchecked.defaultof<FreeCamera>
     let mutable input = Unchecked.defaultof<Input>
     let mutable originalMouseState = Unchecked.defaultof<MouseState>
@@ -43,10 +45,11 @@ type LandGame() as _this =
     let mutable axesHint = Unchecked.defaultof<VertexPositionColor[]>
     let mutable cubeTriangles = Unchecked.defaultof<VertexPositionNormalTexture[]>
     let mutable stoneWorldMatrices = Unchecked.defaultof<Matrix[]>
+    let mutable lightViewProjection = Unchecked.defaultof<Matrix>
     do graphics.GraphicsProfile <- GraphicsProfile.HiDef
-    do graphics.PreferredBackBufferWidth <- 900
-    do graphics.PreferredBackBufferHeight <- 700
-    do graphics.IsFullScreen <- false
+    do graphics.PreferredBackBufferWidth <- 1920
+    do graphics.PreferredBackBufferHeight <- 1080
+    do graphics.IsFullScreen <- true
     do graphics.ApplyChanges()
     do base.Content.RootDirectory <- "Content"
 
@@ -79,12 +82,13 @@ type LandGame() as _this =
         effects <- loadEffects _this
         textures <- loadTextures _this
 
-        let dir = Vector3(0.0f, 0.27f, -0.96f)
+        let dir = Vector3(0.0f, 0.5f, -0.96f)
         dir.Normalize()
         initialLightDirection <- dir
 
         let pp = device.PresentationParameters
         hdrRenderTarget <- new RenderTarget2D(device, pp.BackBufferWidth, pp.BackBufferHeight, false, SurfaceFormat.HalfVector4, DepthFormat.Depth24)
+        shadowMapRenderTarget <- new RenderTarget2D(device, pp.BackBufferWidth, pp.BackBufferHeight, false, SurfaceFormat.HalfVector4, DepthFormat.Depth24)
 
         spriteBatch <- new SpriteBatch(device)
 
@@ -147,6 +151,10 @@ type LandGame() as _this =
 
         lightDirection <- Vector3.Transform(initialLightDirection, Matrix.CreateRotationX(time * -MathHelper.TwoPi / 40.0f))
 
+        let lightsView = Matrix.CreateLookAt(-25.0f * lightDirection, Vector3.Zero, Vector3.Transform(initialLightDirection, Matrix.CreateRotationX(0.5f * MathHelper.Pi + time * -MathHelper.TwoPi / 40.0f)))
+        let lightsProjection = Matrix.CreateOrthographic(50.0f, 35.0f, 1.0f, 50.0f)
+        lightViewProjection <- lightsView * lightsProjection
+
         let rotProportion =
             match time with
             | t when t < 5.0f  -> 0.0f
@@ -165,12 +173,14 @@ type LandGame() as _this =
     override _this.Draw(gameTime) =
         let time = (single gameTime.TotalGameTime.TotalMilliseconds) / 100.0f
 
+        _this.DrawShadowMap()
+
         device.SetRenderTarget(hdrRenderTarget)
 
         do device.Clear(Color.Black)
         _this.DrawApartFromSky false view
         sky.DrawSkyDome world projection lightDirection camera view
-        //_this.DrawDebug perlinTexture3D
+        //_this.DrawDebug shadowMap
 
         device.SetRenderTarget(null)
 
@@ -192,6 +202,33 @@ type LandGame() as _this =
         _this.DrawStones viewMatrix
         //_this.DrawAxesHint viewMatrix
 
+    member _this.DrawShadowMap() =
+        device.SetRenderTarget(shadowMapRenderTarget)
+        device.Clear(Color.White)
+        let effect = effects.Effect
+
+        effect.CurrentTechnique <- effect.Techniques.["ShadowMap"]
+        effect.Parameters.["xLightsWorldViewProjection"].SetValue(world * lightViewProjection)
+
+        //effect.CurrentTechnique.Passes |> Seq.iter
+        //    (fun pass ->
+        //        pass.Apply()
+        //        device.DrawUserIndexedPrimitives<VertexPositionNormalTexture>(PrimitiveType.TriangleList, vertices, 0, vertices.Length, indices, 0, indices.Length / 3)
+        //    )
+        
+        stoneWorldMatrices
+        |> Array.iter (fun wm ->
+            effect.Parameters.["xLightsWorldViewProjection"].SetValue(wm * lightViewProjection)
+
+            effect.CurrentTechnique.Passes |> Seq.iter
+                (fun pass ->
+                    pass.Apply()
+                    device.DrawUserPrimitives<VertexPositionNormalTexture>(PrimitiveType.TriangleList, cubeTriangles, 0, cubeTriangles.Length / 3)
+                ))
+
+        device.SetRenderTarget(null)
+        shadowMap <- shadowMapRenderTarget
+
     member _this.DrawTerrain (x: bool) (viewMatrix: Matrix) =
         let effect = effects.GroundFromAtmosphere
 
@@ -199,6 +236,8 @@ type LandGame() as _this =
         effect.Parameters.["xWorld"].SetValue(world)
         effect.Parameters.["xView"].SetValue(viewMatrix)
         effect.Parameters.["xProjection"].SetValue(projection)
+        effect.Parameters.["xLightsWorldViewProjection"].SetValue(world * lightViewProjection)
+        effect.Parameters.["xShadowMap"].SetValue(shadowMap)
         effect.Parameters.["xCameraPosition"].SetValue(camera.Position)
         effect.Parameters.["xLightDirection"].SetValue(lightDirection)
         effect.Parameters.["xGrassTexture"].SetValue(textures.Grass)
@@ -226,6 +265,7 @@ type LandGame() as _this =
         effect.CurrentTechnique <- effect.Techniques.["Rock"]
         effect.Parameters.["xView"].SetValue(viewMatrix)
         effect.Parameters.["xProjection"].SetValue(projection)
+        //effect.Parameters.["xLightsWorldViewProjection"].SetValue(world * lightViewProjection)
         effect.Parameters.["xCameraPosition"].SetValue(camera.Position)
         effect.Parameters.["xLightDirection"].SetValue(lightDirection)
         effect.Parameters.["xRockTexture"].SetValue(textures.Rock)
